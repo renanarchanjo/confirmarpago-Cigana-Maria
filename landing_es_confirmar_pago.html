@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pago Seguro — Confirmación</title>
+<!-- ============ CONFIG ============ -->
+<script>
+var PIXEL_ID = '1335714198502295'; // mismo pixel del funil BR
+var CAPI_ENDPOINT = 'https://primary-production-2bde7.up.railway.app/webhook/capi-purchase'; // n8n ES
+var MONEDA = 'MXN';
+</script>
+<!-- ====== META PIXEL ====== -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+if(PIXEL_ID && PIXEL_ID.indexOf('PENDIENTE')===-1){
+  fbq('init', PIXEL_ID);
+  fbq('track', 'PageView');
+}
+</script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  body{background:#eef1f4;color:#1c1e21;display:flex;flex-direction:column;align-items:center;padding:14px;min-height:100vh}
+  .bar{max-width:440px;width:100%;display:flex;align-items:center;justify-content:space-between;color:#3a8a3e;font-size:12px;font-weight:600;padding:6px 4px}
+  .card{background:#fff;max-width:440px;width:100%;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.10);overflow:hidden}
+  .top{background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;padding:18px 20px;text-align:center}
+  .top .lock{font-size:12px;opacity:.95}
+  .top h1{font-size:17px;margin-top:5px;line-height:1.35;font-weight:700}
+  .body{padding:16px 20px}
+  label{display:block;font-size:13px;color:#444;margin:11px 0 5px;font-weight:600}
+  input,select{width:100%;padding:12px;border:1px solid #d6d8db;border-radius:9px;font-size:15px}
+  input:focus,select:focus{outline:none;border-color:#43a047}
+  .btn{width:100%;margin-top:18px;padding:15px;background:#2e7d32;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+  .btn:disabled{opacity:.6}
+  .err{color:#c62828;font-size:12px;margin-top:5px;display:none}
+  .seals{display:flex;align-items:center;justify-content:center;gap:14px;padding:12px;color:#7a7f85;font-size:11px;flex-wrap:wrap}
+  .seals b{color:#2e7d32}
+  #thanks{display:none;text-align:center;padding:40px 24px}
+  #thanks .ok{font-size:54px}
+  #thanks h2{margin:12px 0 8px;color:#2e7d32}
+  #thanks p{color:#555;font-size:14px;line-height:1.55}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <div>🔒 Conexión segura SSL</div>
+    <div>✔ Pago protegido</div>
+  </div>
+  <div class="card">
+    <div id="checkout">
+      <div class="top">
+        <div class="lock">🔒 Datos cifrados</div>
+        <h1>¿Ya realizaste el pago?<br>Confírmalo abajo para continuar con tu consulta</h1>
+      </div>
+      <div class="body">
+        <label>Nombre completo</label>
+        <input id="nome" placeholder="Tu nombre completo" autocomplete="name">
+        <label>Dirección</label>
+        <input id="endereco" placeholder="Calle, número, ciudad" autocomplete="street-address">
+        <label>Sexo</label>
+        <select id="sexo">
+          <option value="">Selecciona</option>
+          <option value="f">Femenino</option>
+          <option value="m">Masculino</option>
+        </select>
+        <input id="valor" type="hidden">
+        <div class="err" id="err">Completa todos los campos para confirmar.</div>
+        <button class="btn" id="btn" onclick="confirmar()">✓ Confirmar Pago</button>
+      </div>
+      <div class="seals">
+        <span>🔒 <b>SSL</b> seguro</span>
+        <span>🛡️ Datos <b>protegidos</b></span>
+      </div>
+    </div>
+    <div id="thanks">
+      <div class="ok">✅</div>
+      <h2>¡Pago confirmado!</h2>
+      <p>Gracias, mi amor. 🙏<br>Tu pago fue registrado con éxito.<br>Vuelve a la conversación que ya sigo contigo.</p>
+    </div>
+  </div>
+
+<script>
+function qs(k){return new URLSearchParams(location.search).get(k)}
+function getCookie(n){var m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)');return m?m.pop():''}
+function uuid(){return 'ev-'+Date.now()+'-'+Math.random().toString(16).slice(2)}
+
+// El valor viene por URL (?v=), oculto para el lead — solo backend (Purchase + CAPI)
+var vParam = parseFloat(qs('v')||qs('valor')||'0');
+if(vParam>0){ document.getElementById('valor').value = vParam.toFixed(2); }
+var leadId = qs('id')||qs('mid')||'';
+
+function confirmar(){
+  var nome=document.getElementById('nome').value.trim();
+  var end=document.getElementById('endereco').value.trim();
+  var sexo=document.getElementById('sexo').value;
+  var valor=parseFloat(document.getElementById('valor').value||'0');
+  if(!nome||!end||!sexo){document.getElementById('err').style.display='block';return}
+  var btn=document.getElementById('btn'); btn.disabled=true; btn.textContent='Confirmando...';
+  var parts=nome.split(' ');
+  var fn=parts[0]||''; var ln=parts.slice(1).join(' ')||'';
+  var eventId=uuid();
+  var pixelOn = PIXEL_ID && PIXEL_ID.indexOf('PENDIENTE')===-1;
+  if(pixelOn){
+    try{ fbq('init', PIXEL_ID, { fn:fn.toLowerCase(), ln:ln.toLowerCase(), ge:sexo }); }catch(e){}
+    try{ fbq('track','Purchase',{value:valor, currency:MONEDA}, {eventID:eventId}); }catch(e){}
+  }
+  if(CAPI_ENDPOINT){
+    try{
+      fetch(CAPI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({event_id:eventId,value:valor,currency:MONEDA,nome:nome,endereco:end,sexo:sexo,lead_id:leadId,
+          fbp:getCookie('_fbp'),fbc:getCookie('_fbc')||('fb.1.'+Date.now()+'.'+(qs('fbclid')||'')),
+          event_source_url:location.href,user_agent:navigator.userAgent})}).catch(function(){});
+    }catch(e){}
+  }
+  setTimeout(function(){
+    document.getElementById('checkout').style.display='none';
+    document.getElementById('thanks').style.display='block';
+    window.scrollTo(0,0);
+  },600);
+}
+</script>
+</body>
+</html>
