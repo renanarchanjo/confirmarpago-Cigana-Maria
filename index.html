@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,7 +7,7 @@
 <title>Pago Seguro — Confirmación</title>
 <!-- ============ CONFIG ============ -->
 <script>
-var PIXEL_ID = '1335714198502295'; // mismo pixel del funil BR
+var PIXEL_ID = '1056480800336580'; // pixel CIGANA MXN (nuevo)
 var CAPI_ENDPOINT = 'https://primary-production-2bde7.up.railway.app/webhook/capi-purchase'; // n8n ES
 var MONEDA = 'MXN';
 </script>
@@ -112,7 +113,7 @@ function confirmar(){
     try{
       fetch(CAPI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({event_id:eventId,value:valor,currency:MONEDA,nome:nome,endereco:end,sexo:sexo,lead_id:leadId,
-          fbp:getCookie('_fbp'),fbc:getCookie('_fbc')||('fb.1.'+Date.now()+'.'+(qs('fbclid')||'')),
+          fbp:getCookie('_fbp'),fbc:getCookie('_fbc')||(qs('fbclid')?('fb.1.'+Date.now()+'.'+qs('fbclid')):''),
           event_source_url:location.href,user_agent:navigator.userAgent})}).catch(function(){});
     }catch(e){}
   }
