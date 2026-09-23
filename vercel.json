@@ -1,0 +1,7 @@
+{
+  "redirects": [
+    { "source": "/mx2", "destination": "https://confirmarpago-maestra-marta.vercel.app/", "permanent": false },
+    { "source": "/mx2/", "destination": "https://confirmarpago-maestra-marta.vercel.app/", "permanent": false },
+    { "source": "/mx2/:path*", "destination": "https://confirmarpago-maestra-marta.vercel.app/", "permanent": false }
+  ]
+}
