@@ -277,11 +277,13 @@ fbq('init', '1390635576597126'); fbq('track', 'PageView');
     var parts=nome.split(' ');
     var fn=parts[0]||''; var ln=parts.slice(1).join(' ')||'';
     var eventId=qs('e')||uuid(); // ARS: mesmo event_id do Purchase enviado pelo banco (deduplica navegador x servidor)
-    try{ if(window.fbq){ fbq('init', PIXEL_ID, { fn:fn.toLowerCase(), ln:ln.toLowerCase(), ge:sexo, ph:(telefone||undefined) });
+    // ARS 06/10: o link vai em TODA venda confirmada; upsell (t=up) confirma para o lead mas nao manda Purchase ao pixel (pixel so do front)
+    var EH_UPSELL=(qs('t')||'')==='up';
+    try{ if(window.fbq && !EH_UPSELL){ fbq('init', PIXEL_ID, { fn:fn.toLowerCase(), ln:ln.toLowerCase(), ge:sexo, ph:(telefone||undefined) });
       fbq('track','Purchase',{value:valor, currency:'ARS'}, {eventID:eventId}); } }catch(e){}
     var UTMS={utm_source:qs('utm_source'),utm_campaign:qs('utm_campaign'),utm_medium:qs('utm_medium'),utm_content:qs('utm_content'),utm_term:qs('utm_term')};
     // ARS: sem registro no banco do Mexico; o pagamento ja foi confirmado pela XPag no banco da Argentina
-    if(CAPI_ENDPOINT){
+    if(CAPI_ENDPOINT && !EH_UPSELL){
       try{
         fetch(CAPI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({event_id:eventId,value:valor,currency:'ARS',nome:nome,endereco:end,sexo:sexo,
